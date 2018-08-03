@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:mvc="http://www.springframework.org/schema/mvc" xmlns:util="http://www.springframework.org/schema/util"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
+    <!--数据库连接-->
+    <import resource="spring-dao.xml"/>
+    <!--扫描路径-->
+    <context:component-scan base-package="com.imooc"/>
+    <bean id="shiroFilter" class="org.apache.shiro.spring.web.ShiroFilterFactoryBean">
+        <property name="securityManager" ref="securityManager"/>
+        <!--没有访问权限时，会跳到403.html页面-->
+        <property name="loginUrl" value="login.html"/>
+        <property name="unauthorizedUrl" value="403.html"/>
+        <property name="filterChainDefinitions">
+            <!--从上到下进行匹配-->
+            <value>
+                <!--不需要认证-->
+                /login.html =anon
+                <!--提交登陆请求的url也不需要认证-->
+                /subLogin=anon
+
+                /testRole=roles["admin","admin1" ]
+                /testRole1=rolesOr["admin","admin1"]
+                <!--认证后才可以访问相应路径-->
+                /*=authc
+
+            </value>
+        </property>
+        <property name="filters">
+            <util:map>
+                <entry key="rolesOr" value-ref="rolesFilter"/>
+            </util:map>
+        </property>
+    </bean>
+    <!--创建自定义filter-->
+    <bean class="com.imooc.filter.RolesFilter" id="rolesFilter"/>
+    <!--创建securityManager对象-->
+    <bean class="org.apache.shiro.web.mgt.DefaultWebSecurityManager" id="securityManager">
+
+        <property name="realm" ref="realm"/>
+    </bean>
+
+    <bean class="com.imooc.shiro.realm.CustomRealm" id="realm">
+        <property name="credentialsMatcher" ref="credentialsMatcher"/>
+    </bean>
+    <bean class="org.apache.shiro.authc.credential.HashedCredentialsMatcher" id="credentialsMatcher">
+        <property name="hashAlgorithmName" value="md5"/>
+        <property name="hashIterations" value="1"/>
+    </bean>
+</beans>
